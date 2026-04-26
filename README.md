@@ -29,7 +29,7 @@ Ensure you have `zenity` installed to enable the graphical dialog prompts.
 
 ### Cloning the Repository
 ```bash
-git clone https://github.com/YOUR_USERNAME/linux-dev-launcher.git ~/github/linux-dev-launcher
+git clone https://github.com/KnowOneActual/linux-dev-launcher.git ~/github/linux-dev-launcher
 cd ~/github/linux-dev-launcher
 ```
 
