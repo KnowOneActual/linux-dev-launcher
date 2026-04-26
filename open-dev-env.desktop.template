@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Service
+MimeType=inode/directory;application/octet-stream;
+Actions=openDevEnv;
+X-KDE-Priority=TopLevel
+
+[Desktop Action openDevEnv]
+Name=Open Dev Environment
+Icon=utilities-terminal
+Exec=python3 {{INSTALL_DIR}}/open_dev_env.py "%f"
