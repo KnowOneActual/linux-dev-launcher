@@ -21,6 +21,7 @@ for dir in "${KDE_DIRS[@]}"; do
     mkdir -p "$dir"
     DESKTOP_FILE="$dir/open-dev-env.desktop"
     sed "s|{{INSTALL_DIR}}|$INSTALL_DIR|g" "$TEMPLATE_FILE" > "$DESKTOP_FILE"
+    chmod +x "$DESKTOP_FILE"
     echo "✓ Installed KDE/Dolphin ServiceMenu in: $dir"
 done
 
