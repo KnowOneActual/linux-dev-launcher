@@ -94,6 +94,12 @@ You can freely edit the `config.json` file to add custom command-line arguments 
 
 ## Troubleshooting
 
+**"You are not authorized to execute this file" (KDE Dolphin)**
+If you see this error when right-clicking, ensure the context menu files are marked as executable by running:
+`chmod +x ~/.local/share/kio/servicemenus/open-dev-env.desktop ~/.local/share/kservices5/ServiceMenus/open-dev-env.desktop`
+*(Note: As of v1.0.1, the installer handles this automatically).*
+
+**Testing Your Setup**
 You can run the built-in test mode to verify your configuration and ensure Zenity is installed correctly:
 ```bash
 cd ~/github/linux-dev-launcher
