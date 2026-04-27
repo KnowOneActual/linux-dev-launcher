@@ -449,8 +449,9 @@ def launch_app(app_name, path_str, is_terminal=False, verbose=False):
         elif cmd_name == "kitty":
             cmd.append(f"--directory={path_str}")
         elif cmd_name in ["warp-terminal", "warp"]:
-            # Warp on Linux expects a file:// URI or it defaults to home
-            cmd.append(f"file://{path_str}")
+            # Warp on Linux is finicky with initial directories.
+            # Using absolute path as positional arg often works if it's already running.
+            cmd.append(path_str)
         else:
             cmd.append(path_str)
     else:
@@ -468,11 +469,17 @@ def launch_app(app_name, path_str, is_terminal=False, verbose=False):
         # Use Popen to not block the script.
         # start_new_session=True ensures the app stays open after the script exits.
         # cwd=path_str ensures the app starts in the project directory.
+        env = os.environ.copy()
+        if is_terminal and cmd_name in ["warp-terminal", "warp"]:
+            # Some community workarounds use WARP_CD
+            env["WARP_CD"] = path_str
+            
         subprocess.Popen(
             cmd, 
             stdout=subprocess.DEVNULL, 
             stderr=subprocess.DEVNULL,
             cwd=path_str,
+            env=env,
             start_new_session=True
         )
         return True
