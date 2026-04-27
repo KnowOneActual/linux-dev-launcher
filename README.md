@@ -87,6 +87,7 @@ The first time you run it, a configuration file is created automatically at:
 ### Default Terminals & Editors
 By default, it looks for:
 - **Terminals:** Ghostty, Kitty, Warp, Gnome-Terminal, Alacritty, Konsole
+  - *Note: Warp on Linux currently has a known issue where it defaults to the Home directory rather than the project directory. See [WARP_TROUBLESHOOTING.md](./WARP_TROUBLESHOOTING.md) for more details.*
 - **Editors:** VSCodium, Code, Zed
 
 ### Changing Configuration

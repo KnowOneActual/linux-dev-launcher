@@ -18,7 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated launcher to use `cwd` parameter in `subprocess.Popen` for more reliable directory initialization.
 
 ### Fixed
-- Fixed Warp terminal failing to open in the correct directory by using the `file://` URI scheme.
+- Fixed Warp terminal launch failure by reverting directory initialization workarounds (Warp currently defaults to Home directory on Linux).
+- Added `WARP_TROUBLESHOOTING.md` with research findings and a roadmap for fixing directory initialization.
 - Fixed Konsole failing to open by using the correct `--workdir` flag instead of `--working-directory`.
 - Fixed an issue where some GUI applications might close when the launcher script terminated.
 
