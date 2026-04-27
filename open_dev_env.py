@@ -12,8 +12,8 @@ from logging.handlers import RotatingFileHandler
 
 # --- DEFAULT CONFIGURATION ---
 DEFAULT_CONFIG = {
-    "terminals": ["Ghostty", "Kitty", "Warp", "Gnome-Terminal", "Alacritty"],
-    "editors": ["VSCodium", "Code"],
+    "terminals": ["Ghostty", "Kitty", "Warp", "Gnome-Terminal", "Alacritty", "Konsole"],
+    "editors": ["VSCodium", "Code", "Zed"],
     "app_args": {},
     "logging": {
         "enabled": True,
@@ -218,11 +218,29 @@ def get_last_choice(project_path):
 # --- HELPER FUNCTIONS ---
 
 def get_executable_name(app_name):
-    cmd = app_name.lower().replace(" ", "-")
-    if cmd == "warp": return "warp-terminal"
-    if cmd == "vscodium": return "codium"
-    if cmd == "code": return "code"
-    return cmd
+    """Resolve app name to executable name with existence check."""
+    base_name = app_name.lower().replace(" ", "-")
+    
+    # Map of friendly names to possible executable names
+    mapping = {
+        "warp": ["warp-terminal", "warp"],
+        "vscodium": ["codium", "vscodium"],
+        "code": ["code", "visual-studio-code", "code-insiders"],
+        "ghostty": ["ghostty"],
+        "kitty": ["kitty"],
+        "alacritty": ["alacritty"],
+        "gnome-terminal": ["gnome-terminal"],
+        "konsole": ["konsole"],
+        "zed": ["zed", "zed-editor"]
+    }
+    
+    if base_name in mapping:
+        for cmd in mapping[base_name]:
+            if shutil.which(cmd):
+                return cmd
+        return mapping[base_name][0] # Fallback to first in list
+        
+    return base_name
 
 def app_exists(app_name):
     """Check if application exists in PATH."""
@@ -400,12 +418,13 @@ def launch_app(app_name, path_str, is_terminal=False, verbose=False):
     cmd = [cmd_name]
     
     if is_terminal:
-        if cmd_name in ["gnome-terminal", "alacritty", "ghostty"]:
+        if cmd_name in ["gnome-terminal", "alacritty", "ghostty", "konsole"]:
             cmd.append(f"--working-directory={path_str}")
         elif cmd_name == "kitty":
             cmd.append(f"--directory={path_str}")
-        elif cmd_name == "warp-terminal":
-            cmd.append(path_str) # Warp usually takes directory as positional
+        elif cmd_name in ["warp-terminal", "warp"]:
+            # Warp prefers inheriting CWD, but also supports positional path
+            cmd.append(path_str)
         else:
             cmd.append(path_str)
     else:
@@ -415,13 +434,21 @@ def launch_app(app_name, path_str, is_terminal=False, verbose=False):
     if app_name in APP_ARGS:
         cmd.extend(APP_ARGS[app_name])
         
-    logger.info(f"Launching command: {' '.join(cmd)}")
+    logger.info(f"Launching command: {' '.join(cmd)} (cwd: {path_str})")
     if verbose:
         print(f"Launching {app_name} with command: {' '.join(cmd)}")
         
     try:
-        # Use Popen to not block the script
-        subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        # Use Popen to not block the script.
+        # start_new_session=True ensures the app stays open after the script exits.
+        # cwd=path_str ensures the app starts in the project directory.
+        subprocess.Popen(
+            cmd, 
+            stdout=subprocess.DEVNULL, 
+            stderr=subprocess.DEVNULL,
+            cwd=path_str,
+            start_new_session=True
+        )
         return True
     except Exception as e:
         logger.error(f"Failed to launch {app_name}: {e}")

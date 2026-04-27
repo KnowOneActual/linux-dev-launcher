@@ -86,8 +86,8 @@ The first time you run it, a configuration file is created automatically at:
 
 ### Default Terminals & Editors
 By default, it looks for:
-- **Terminals:** Ghostty, Kitty, Warp, Gnome-Terminal, Alacritty
-- **Editors:** VSCodium, Code
+- **Terminals:** Ghostty, Kitty, Warp, Gnome-Terminal, Alacritty, Konsole
+- **Editors:** VSCodium, Code, Zed
 
 ### Changing Configuration
 You can freely edit the `config.json` file to add custom command-line arguments to your tools, change your preferred terminals, or enable/disable project memory (`remember_choices`).
