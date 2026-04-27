@@ -17,7 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated launcher to use `cwd` parameter in `subprocess.Popen` for more reliable directory initialization.
 
 ### Fixed
-- Fixed Warp terminal failing to open by improving executable detection and process handling.
+- Fixed Warp terminal failing to open by removing invalid positional path argument (now relies on `cwd`).
+- Fixed Konsole failing to open by using the correct `--workdir` flag instead of `--working-directory`.
 - Fixed an issue where some GUI applications might close when the launcher script terminated.
 
 ## [1.0.1] - 2026-04-26

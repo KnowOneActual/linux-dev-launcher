@@ -418,13 +418,17 @@ def launch_app(app_name, path_str, is_terminal=False, verbose=False):
     cmd = [cmd_name]
     
     if is_terminal:
-        if cmd_name in ["gnome-terminal", "alacritty", "ghostty", "konsole"]:
+        if cmd_name in ["gnome-terminal", "alacritty", "ghostty"]:
             cmd.append(f"--working-directory={path_str}")
+        elif cmd_name == "konsole":
+            cmd.append("--workdir")
+            cmd.append(path_str)
         elif cmd_name == "kitty":
             cmd.append(f"--directory={path_str}")
         elif cmd_name in ["warp-terminal", "warp"]:
-            # Warp prefers inheriting CWD, but also supports positional path
-            cmd.append(path_str)
+            # Warp on Linux doesn't reliably take a positional path arg for the GUI launch
+            # and may try to interpret it as a URL. We rely on cwd=path_str in Popen.
+            pass
         else:
             cmd.append(path_str)
     else:
