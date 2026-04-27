@@ -217,11 +217,11 @@ def get_last_choice(project_path):
 
 # --- HELPER FUNCTIONS ---
 
-def get_executable_name(app_name):
-    """Resolve app name to executable name with existence check."""
+def get_executable_command(app_name):
+    """Resolve app name to a command list (handles binaries and flatpaks)."""
     base_name = app_name.lower().replace(" ", "-")
     
-    # Map of friendly names to possible executable names
+    # Map of friendly names to possible executable names/ids
     mapping = {
         "warp": ["warp-terminal", "warp"],
         "vscodium": ["codium", "vscodium"],
@@ -231,24 +231,44 @@ def get_executable_name(app_name):
         "alacritty": ["alacritty"],
         "gnome-terminal": ["gnome-terminal"],
         "konsole": ["konsole"],
-        "zed": ["zed", "zed-editor"]
+        "zed": ["zed", "zed-editor", "dev.zed.Zed"]
     }
     
     if base_name in mapping:
         for cmd in mapping[base_name]:
+            # Check for native binary
             if shutil.which(cmd):
-                return cmd
-        return mapping[base_name][0] # Fallback to first in list
+                return [cmd]
+            # Check for flatpak
+            if "." in cmd: # Likely a flatpak ID
+                if shutil.which("flatpak"):
+                    try:
+                        result = subprocess.run(
+                            ["flatpak", "info", cmd], 
+                            stdout=subprocess.DEVNULL, 
+                            stderr=subprocess.DEVNULL
+                        )
+                        if result.returncode == 0:
+                            return ["flatpak", "run", cmd]
+                    except Exception:
+                        pass
+        return [mapping[base_name][0]] # Fallback
         
-    return base_name
+    return [base_name]
 
 def app_exists(app_name):
-    """Check if application exists in PATH."""
+    """Check if application exists in PATH or as Flatpak."""
     if not app_name:
         return False
-    cmd = get_executable_name(app_name)
-    exists = shutil.which(cmd) is not None
-    logger.debug(f"Checking {cmd}: {exists}")
+    cmd_list = get_executable_command(app_name)
+    if not cmd_list:
+        return False
+        
+    if cmd_list[0] == "flatpak":
+        return True # We already verified it in get_executable_command
+        
+    exists = shutil.which(cmd_list[0]) is not None
+    logger.debug(f"Checking {cmd_list[0]}: {exists}")
     return exists
 
 def sanitize_path(path_str, verbose=False):
@@ -414,8 +434,11 @@ def ask_editor_choice(project_name, project_path, verbose=False):
 # --- APP LAUNCHING ---
 
 def launch_app(app_name, path_str, is_terminal=False, verbose=False):
-    cmd_name = get_executable_name(app_name)
-    cmd = [cmd_name]
+    cmd_base = get_executable_command(app_name)
+    cmd = list(cmd_base)
+    
+    # Use the primary command name for logic
+    cmd_name = cmd_base[-1] if cmd_base[0] == "flatpak" else cmd_base[0]
     
     if is_terminal:
         if cmd_name in ["gnome-terminal", "alacritty", "ghostty"]:
@@ -426,9 +449,8 @@ def launch_app(app_name, path_str, is_terminal=False, verbose=False):
         elif cmd_name == "kitty":
             cmd.append(f"--directory={path_str}")
         elif cmd_name in ["warp-terminal", "warp"]:
-            # Warp on Linux doesn't reliably take a positional path arg for the GUI launch
-            # and may try to interpret it as a URL. We rely on cwd=path_str in Popen.
-            pass
+            # Warp on Linux expects a file:// URI or it defaults to home
+            cmd.append(f"file://{path_str}")
         else:
             cmd.append(path_str)
     else:

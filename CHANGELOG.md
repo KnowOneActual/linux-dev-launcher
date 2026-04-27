@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Added **Konsole** to the default terminals list.
-- Added **Zed** to the default editors list.
+- Added **Zed** to the default editors list (including support for Flatpak version).
+- Added support for detecting and launching **Flatpak** applications.
 - Improved application detection to search for multiple possible binary names (e.g., `warp-terminal` and `warp`).
 
 ### Changed
@@ -17,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated launcher to use `cwd` parameter in `subprocess.Popen` for more reliable directory initialization.
 
 ### Fixed
-- Fixed Warp terminal failing to open by removing invalid positional path argument (now relies on `cwd`).
+- Fixed Warp terminal failing to open in the correct directory by using the `file://` URI scheme.
 - Fixed Konsole failing to open by using the correct `--workdir` flag instead of `--working-directory`.
 - Fixed an issue where some GUI applications might close when the launcher script terminated.
 
