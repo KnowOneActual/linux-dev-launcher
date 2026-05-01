@@ -434,6 +434,39 @@ def ask_editor_choice(project_name, project_path, verbose=False):
 # --- APP LAUNCHING ---
 
 def launch_app(app_name, path_str, is_terminal=False, verbose=False):
+    # Special handling for Warp on Linux
+    if is_terminal and app_name.lower() == "warp":
+        command_executor = None
+        if shutil.which("xdg-open"):
+            command_executor = "xdg-open"
+        elif shutil.which("gio"):
+            command_executor = "gio"
+
+        if command_executor:
+            # Ensure path is absolute for the URI scheme
+            abs_path = Path(path_str).resolve()
+            # Use the Warp URI scheme to open in a new tab with the specified path
+            cmd = [command_executor, f"warp://action/new_tab?path={abs_path}"]
+            logger.info(f"Launching Warp via {command_executor} URI scheme: {' '.join(cmd)}")
+            if verbose:
+                print(f"Launching Warp via {command_executor} URI scheme: {' '.join(cmd)}")
+            try:
+                subprocess.Popen(
+                    cmd,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    start_new_session=True
+                )
+                return True
+            except Exception as e:
+                logger.error(f"Failed to launch Warp using {command_executor} URI: {e}")
+                show_error_dialog("Launch Failed", f"Could not launch Warp: {e}")
+                return False
+        else:
+            logger.warning("Neither xdg-open nor gio is available. Cannot launch Warp in specified directory. Please install xdg-utils or glib2.")
+            # Fall through to generic logic if no URI handler is found
+            # This means Warp will launch without a specified directory.
+
     cmd_base = get_executable_command(app_name)
     cmd = list(cmd_base)
     
@@ -449,8 +482,9 @@ def launch_app(app_name, path_str, is_terminal=False, verbose=False):
         elif cmd_name == "kitty":
             cmd.append(f"--directory={path_str}")
         elif cmd_name in ["warp-terminal", "warp"]:
-            # Warp on Linux currently has issues opening in a specific directory.
-            # Passing a path here causes a "URL without base" error and prevents launching.
+            # This is the fallback if xdg-open was not available or Warp-specific handling didn't return True.
+            # As per the search results, 'warp-terminal' itself doesn't take a directory argument directly,
+            # so the 'pass' here is still appropriate for this fallback.
             pass
         else:
             cmd.append(path_str)
